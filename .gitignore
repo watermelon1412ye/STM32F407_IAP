@@ -1,0 +1,41 @@
+# IDE/editor state
+.idea/
+.vscode/
+*.uvguix.*
+JLinkLog.txt
+JLinkSettings.ini
+
+# Keil/ARM build outputs
+**/Output/
+**/Listing/
+**/*.axf
+**/*.hex
+**/*.bin
+**/*.map
+**/*.lst
+**/*.o
+**/*.d
+**/*.crf
+**/*.htm
+**/*.lnp
+**/*.sct.Bak
+**/*.dep
+**/*.__i
+
+# Qt build outputs
+APP/release/
+APP/debug/
+build-*/
+*.pro.user
+*.qmake.stash
+Makefile
+Makefile.*
+object_script.*
+moc_*.cpp
+qrc_*.cpp
+ui_*.h
+
+# Local temporary files
+*.bak
+*.tmp
+*.log

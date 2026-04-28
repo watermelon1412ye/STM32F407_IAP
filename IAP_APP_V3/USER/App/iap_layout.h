@@ -1,0 +1,23 @@
+#ifndef IAP_LAYOUT_H
+#define IAP_LAYOUT_H
+
+#include <stdint.h>
+
+#define IAP_BOOT_REGION_START   0x08000000U
+#define IAP_BOOT_REGION_SIZE    0x0000C000U
+
+#define IAP_FLAG_SECTOR_START   0x0800C000U
+#define IAP_FLAG_SECTOR_SIZE    0x00004000U
+
+#define IAP_RUN_START           0x08010000U
+#define IAP_RUN_SIZE            0x00030000U
+#define IAP_RUN_END             (IAP_RUN_START + IAP_RUN_SIZE)
+
+#define IAP_SLOT_A_START        0x08040000U
+#define IAP_SLOT_B_START        0x08080000U
+#define IAP_SLOT_BANK_SIZE      0x00040000U
+
+#define IAP_APP_START_ADDR      IAP_RUN_START
+#define IAP_APP_END_ADDR        IAP_RUN_END
+
+#endif
