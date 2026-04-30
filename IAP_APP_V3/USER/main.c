@@ -1,5 +1,6 @@
 #include "stm32f4xx.h"
 #include "./Bsp/usart/bsp_debug_usart.h"
+#include "App/iap_wifi.h"
 #include "FreeRTOS.h"
 #include "task.h"
 #include "netconf.h"
@@ -10,6 +11,7 @@
 #define ETH_POLL_TASK_STACK_WORDS    256
 #define PRINT_TASK_STACK_WORDS       128
 #define OTA_TASK_STACK_WORDS         512
+#define WIFI_TASK_STACK_WORDS        512
 
 static void AppStartTask(void *parameter);
 static void EthernetPollTask(void *parameter);
@@ -72,6 +74,15 @@ static void AppStartTask(void *parameter)
   xTaskCreate(OTA_UpdateTask,
               "ota_tcp",
               OTA_TASK_STACK_WORDS,
+              NULL,
+              3,
+              NULL);
+
+  IAP_WIFI_Init();
+
+  xTaskCreate(IAP_WIFI_Task,
+              "wifi_ota",
+              WIFI_TASK_STACK_WORDS,
               NULL,
               3,
               NULL);
