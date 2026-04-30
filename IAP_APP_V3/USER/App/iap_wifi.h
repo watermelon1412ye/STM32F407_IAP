@@ -41,7 +41,7 @@
  * ================================================================ */
 #define WIFI_SSID               "RIFA" //你的WiFi名
 #define WIFI_PASSWORD           "RIFA2022" //你的WiFi密码
-#define WIFI_OTA_SERVER_IP      "192.168.1.200"
+#define WIFI_OTA_SERVER_IP      "10.11.243.172"
 #define WIFI_OTA_SERVER_PORT    6000
 
 /* ================================================================
