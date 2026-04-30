@@ -51,7 +51,7 @@ static FLASH_Status IAP_EraseOneSector(uint32_t sector)
   st = FLASH_EraseSector(sector, VoltageRange_3);
   if (st != FLASH_COMPLETE)
   {
-    printf("IAP error: erase sector %lu failed st=%d\r\n",
+    printf("IAP错误: 擦除扇区%lu失败 状态=%d\r\n",
            (unsigned long)sector,
            (int)st);
   }
@@ -125,7 +125,7 @@ FLASH_Status IAP_PrepareInactiveSlot(uint32_t *slot_start_out, uint32_t *boot_fr
   }
 
   slot_start = IAP_SlotStartFromBootFrom(next_boot_from);
-  printf("IAP: prepare inactive slot %c @0x%08lX\r\n",
+  printf("IAP: 准备非活跃槽位 %c @0x%08lX\r\n",
          (next_boot_from == 1U) ? 'B' : 'A',
          (unsigned long)slot_start);
 
@@ -155,7 +155,7 @@ FLASH_Status IAP_WriteBootFlag(uint32_t boot_from, uint32_t image_size)
 
   if (image_size == 0U || image_size > IAP_RUN_SIZE)
   {
-    printf("IAP error: invalid image size %lu\r\n", (unsigned long)image_size);
+    printf("IAP错误: 无效的固件大小 %lu\r\n", (unsigned long)image_size);
     return FLASH_ERROR_OPERATION;
   }
 
@@ -191,7 +191,7 @@ FLASH_Status IAP_WriteBootFlag(uint32_t boot_from, uint32_t image_size)
     return st;
   }
 
-  printf("IAP: flag updated, version=%lu, boot_from=%lu, size=%lu\r\n",
+  printf("IAP: 标志已更新, 版本=%lu, 启动来源=%lu, 大小=%lu\r\n",
          (unsigned long)new_flag.version,
          (unsigned long)new_flag.boot_from,
          (unsigned long)new_flag.image_size);
@@ -210,15 +210,15 @@ void IAP_Flag_GetCopySource(uint32_t *src_out, uint32_t *len_out)
 
   if (IAP_Flag_Read(&flag) == 0U)
   {
-    printf("Flag: magic invalid (0x%08lX).\r\n", (unsigned long)flag.magic);
+    printf("标志区: 魔数无效 (0x%08lX)。\r\n", (unsigned long)flag.magic);
     if (IAP_RunVectorLooksValid() != 0U)
     {
-      printf("Flag: run region has valid vectors, will jump without A/B copy.\r\n");
+      printf("标志区: 运行区向量表有效，直接跳转无需A/B拷贝。\r\n");
       *src_out = IAP_RUN_START;
       *len_out = 0U;
       return;
     }
-    printf("Flag: default copy from slot A.\r\n");
+    printf("标志区: 默认从槽位A拷贝。\r\n");
     *src_out = IAP_SLOT_A_START;
     *len_out = IAP_RUN_SIZE;
     return;
@@ -233,7 +233,7 @@ void IAP_Flag_GetCopySource(uint32_t *src_out, uint32_t *len_out)
 
   len = (len + 3U) & ~3U;
   *len_out = len;
-  printf("Flag: valid, boot_from=%lu, copy_len=%lu\r\n",
+  printf("标志区: 有效, 启动来源=%lu, 拷贝长度=%lu\r\n",
          (unsigned long)flag.boot_from,
          (unsigned long)len);
 }
@@ -245,14 +245,14 @@ FLASH_Status IAP_EraseRunRegion(void)
   st = FLASH_EraseSector(FLASH_Sector_4, VoltageRange_3);
   if (st != FLASH_COMPLETE)
   {
-    printf("IAP error: Erase Sector4 failed st=%d\r\n", (int)st);
+    printf("IAP错误: 擦除扇区4失败 状态=%d\r\n", (int)st);
     return st;
   }
 
   st = FLASH_EraseSector(FLASH_Sector_5, VoltageRange_3);
   if (st != FLASH_COMPLETE)
   {
-    printf("IAP error: Erase Sector5 failed st=%d\r\n", (int)st);
+    printf("IAP错误: 擦除扇区5失败 状态=%d\r\n", (int)st);
     return st;
   }
 
@@ -272,7 +272,7 @@ FLASH_Status IAP_CopyToRun(uint32_t src, uint32_t len)
 
   if (src != IAP_SLOT_A_START && src != IAP_SLOT_B_START)
   {
-    printf("IAP error: copy src 0x%08lX not in A/B slot\r\n", (unsigned long)src);
+    printf("IAP错误: 拷贝源 0x%08lX 不在A/B槽位内\r\n", (unsigned long)src);
     return FLASH_ERROR_OPERATION;
   }
 
@@ -282,7 +282,7 @@ FLASH_Status IAP_CopyToRun(uint32_t src, uint32_t len)
     st = ClearFlagsAndProgramWord(IAP_RUN_START + i, w);
     if (st != FLASH_COMPLETE)
     {
-      printf("IAP error: Copy program word failed off=%lu st=%d\r\n",
+      printf("IAP错误: 拷贝Word失败 偏移=%lu 状态=%d\r\n",
              (unsigned long)i,
              (int)st);
       return st;
@@ -301,7 +301,7 @@ void IAP_Boot_NormalFromFlag(void)
 
   if (len == 0U && src == IAP_RUN_START)
   {
-    printf("IAP: direct jump to run 0x%08lX\r\n", (unsigned long)IAP_RUN_START);
+    printf("IAP: 直接跳转到运行区 0x%08lX\r\n", (unsigned long)IAP_RUN_START);
     IAP_Load_App(IAP_RUN_START);
   }
 
@@ -310,18 +310,18 @@ void IAP_Boot_NormalFromFlag(void)
   if (IAP_EraseRunRegion() != FLASH_COMPLETE)
   {
     FLASH_Lock();
-    printf("IAP fatal: cannot erase run region.\r\n");
+    printf("IAP致命错误: 无法擦除运行区。\r\n");
     while (1) {}
   }
 
   if (IAP_CopyToRun(src, len) != FLASH_COMPLETE)
   {
     FLASH_Lock();
-    printf("IAP fatal: copy A/B -> run failed.\r\n");
+    printf("IAP致命错误: A/B槽位拷贝到运行区失败。\r\n");
     while (1) {}
   }
 
   FLASH_Lock();
-  printf("IAP: copy done, jumping to app 0x%08lX ...\r\n", (unsigned long)IAP_RUN_START);
+  printf("IAP: 拷贝完成，跳转到APP 0x%08lX ...\r\n", (unsigned long)IAP_RUN_START);
   IAP_Load_App(IAP_RUN_START);
 }

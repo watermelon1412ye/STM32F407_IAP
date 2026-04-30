@@ -24,8 +24,8 @@ int main(void)
   __enable_irq();
   Debug_USART_Config();
 
-  printf("\r\nIAP APP FreeRTOS + lwIP demo\r\n");
-  printf("Static IP: %d.%d.%d.%d\r\n", IP_ADDR0, IP_ADDR1, IP_ADDR2, IP_ADDR3);
+  printf("\r\nIAP APP FreeRTOS + lwIP 示例程序\r\n");
+  printf("静态IP: %d.%d.%d.%d\r\n", IP_ADDR0, IP_ADDR1, IP_ADDR2, IP_ADDR3);
 
   xTaskCreate(AppStartTask,
               "app_start",
@@ -45,10 +45,10 @@ static void AppStartTask(void *parameter)
   (void)parameter;
 
   ETH_BSP_Config();
-  printf("ETH BSP init done\r\n");
+  printf("以太网BSP初始化完成\r\n");
 
   LwIP_Init();
-  printf("lwIP init done\r\n");
+  printf("lwIP初始化完成\r\n");
 
   xTaskCreate(EthernetPollTask,
               "eth_poll",
@@ -112,7 +112,7 @@ static void PrintTask1(void *parameter)
   (void)parameter;
 
   for (;;) {
-    printf("task1 alive\r\n");
+    printf("任务1 运行中\r\n");
     vTaskDelay(pdMS_TO_TICKS(1000));
   }
 }
@@ -122,7 +122,7 @@ static void PrintTask2(void *parameter)
   (void)parameter;
 
   for (;;) {
-    printf("task2 alive\r\n");
+    printf("任务2 运行中\r\n");
     vTaskDelay(pdMS_TO_TICKS(1500));
   }
 }

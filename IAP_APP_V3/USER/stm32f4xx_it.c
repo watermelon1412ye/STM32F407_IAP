@@ -12,7 +12,7 @@ void NMI_Handler(void)
 
 void HardFault_Handler(void)
 {
-  printf("hardfault!!!\r\n");
+  printf("硬件错误!!!\r\n");
   while (1) {
   }
 }

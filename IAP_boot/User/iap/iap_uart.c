@@ -140,7 +140,7 @@ FLASH_Status IAP_UART_PrepareDownloadSlot(void)
   flash_write_addr = s_download_slot_start;
   s_download_prepared = 1U;
 
-  printf("IAP: UART target slot %c, write start=0x%08lX\r\n",
+  printf("IAP: 串口目标槽位 %c, 写入起始地址=0x%08lX\r\n",
          (s_download_boot_from == 1U) ? 'B' : 'A',
          (unsigned long)s_download_slot_start);
   return FLASH_COMPLETE;
@@ -160,7 +160,7 @@ void IAP_UART_IrqRxByte(uint8_t byte)
 
   if (len >= IAP_UART_RX_BUFFER_SIZE)
   {
-    printf("IAP warn: RX buffer overflow, drop current frame.\r\n");
+    printf("IAP警告: 接收缓冲区溢出，丢弃当前帧。\r\n");
     s_rx_len = 0U;
     return;
   }
@@ -171,7 +171,7 @@ void IAP_UART_IrqRxByte(uint8_t byte)
 
 void IAP_UART_OnRxOverflow(void)
 {
-  printf("IAP warn: USART ORE overflow, reset RX frame.\r\n");
+  printf("IAP警告: 串口溢出错误，重置接收帧。\r\n");
   s_rx_len = 0U;
   s_idle_ms = 0U;
 }
@@ -302,7 +302,7 @@ static FLASH_Status IAP_FlashWriteBytes(const uint8_t *data, uint16_t len)
 
   if (s_download_prepared == 0U)
   {
-    printf("IAP error: download slot not prepared.\r\n");
+    printf("IAP错误: 下载槽位未准备。\r\n");
     return FLASH_ERROR_OPERATION;
   }
 
@@ -314,7 +314,7 @@ static FLASH_Status IAP_FlashWriteBytes(const uint8_t *data, uint16_t len)
 
   if (addr + (uint32_t)len > slot_end)
   {
-    printf("IAP error: slot write out of range (addr=0x%08lX, len=%u)\r\n",
+    printf("IAP错误: 槽位写入超出范围 (地址=0x%08lX, 长度=%u)\r\n",
            (unsigned long)addr,
            (unsigned)len);
     return FLASH_ERROR_OPERATION;
@@ -336,7 +336,7 @@ static FLASH_Status IAP_FlashWriteBytes(const uint8_t *data, uint16_t len)
       st = IAP_FlashClearAndProgramWord(cur_addr, w);
       if (st != FLASH_COMPLETE)
       {
-        printf("IAP error: ProgramWord failed addr=0x%08lX st=%d\r\n",
+        printf("IAP错误: ProgramWord失败 地址=0x%08lX 状态=%d\r\n",
                (unsigned long)cur_addr,
                (int)st);
         return st;
@@ -350,7 +350,7 @@ static FLASH_Status IAP_FlashWriteBytes(const uint8_t *data, uint16_t len)
     st = IAP_FlashClearAndProgramByte(cur_addr, data[idx]);
     if (st != FLASH_COMPLETE)
     {
-      printf("IAP error: ProgramByte failed addr=0x%08lX st=%d\r\n",
+      printf("IAP错误: ProgramByte失败 地址=0x%08lX 状态=%d\r\n",
              (unsigned long)cur_addr,
              (int)st);
       return st;
@@ -375,17 +375,17 @@ FLASH_Status IAP_UART_FinalizeDownload(void)
 {
   if (s_download_prepared == 0U || s_received_firmware == 0U || s_download_size == 0U)
   {
-    printf("IAP error: no firmware received, skip finalize.\r\n");
+    printf("IAP错误: 未接收固件，跳过收尾。\r\n");
     return FLASH_ERROR_OPERATION;
   }
 
   if (IAP_ImageVectorValid(s_download_slot_start, IAP_RUN_START, IAP_RUN_END) == 0U)
   {
-    printf("IAP error: downloaded image vector invalid.\r\n");
+    printf("IAP错误: 下载的固件向量表无效。\r\n");
     return FLASH_ERROR_OPERATION;
   }
 
-  printf("IAP: finalize slot %c, image_size=%lu\r\n",
+  printf("IAP: 槽位%c收尾完成, 固件大小=%lu\r\n",
          (s_download_boot_from == 1U) ? 'B' : 'A',
          (unsigned long)s_download_size);
   return IAP_WriteBootFlag(s_download_boot_from, s_download_size);
@@ -401,7 +401,7 @@ void IAP_Load_App(uint32_t app_addr)
 
   if (IAP_AppVectorValid(app_addr) == 0U)
   {
-    printf("IAP error: app vector invalid, refuse jump. MSP=0x%08lX RESET=0x%08lX\r\n",
+    printf("IAP错误: APP向量表无效，拒绝跳转。MSP=0x%08lX RESET=0x%08lX\r\n",
            (unsigned long)app_msp,
            (unsigned long)app_reset);
     while (1) {}
@@ -473,7 +473,7 @@ void Parse_IAP_Frame(void)
 
     if ((uint32_t)i + 6U > (uint32_t)n)
     {
-      printf("IAP error: Not enough length to read N\r\n");
+      printf("IAP错误: 长度不足以读取N字段\r\n");
       break;
     }
 
@@ -487,7 +487,7 @@ void Parse_IAP_Frame(void)
 
       if (cmd_firmware == 0U && cmd_enter == 0U)
       {
-        printf("IAP error: unknown cmd 0x%02X 0x%02X\r\n", (unsigned)cmd_h, (unsigned)cmd_l);
+        printf("IAP错误: 未知命令 0x%02X 0x%02X\r\n", (unsigned)cmd_h, (unsigned)cmd_l);
         i++;
         continue;
       }
@@ -503,14 +503,14 @@ void Parse_IAP_Frame(void)
 
         if (N > IAP_FRAME_MAX_N)
         {
-          printf("IAP error: Invalid N=%u\r\n", (unsigned)N);
+          printf("IAP错误: 无效的N=%u\r\n", (unsigned)N);
           i++;
           continue;
         }
 
         if (cmd_enter != 0U && N != 0U)
         {
-          printf("IAP error: ENTER_IAP cmd requires N=0\r\n");
+          printf("IAP错误: ENTER_IAP命令要求N=0\r\n");
           i++;
           continue;
         }
@@ -518,7 +518,7 @@ void Parse_IAP_Frame(void)
         frame_total = (uint32_t)N + (uint32_t)IAP_FRAME_OVERHEAD;
         if ((uint32_t)i + frame_total > (uint32_t)n)
         {
-          printf("IAP error: Length mismatch (need %lu bytes, remain %u)\r\n",
+          printf("IAP错误: 长度不匹配 (需要%lu字节, 剩余%u)\r\n",
                  (unsigned long)frame_total,
                  (unsigned)((uint32_t)n - (uint32_t)i));
           break;
@@ -529,7 +529,7 @@ void Parse_IAP_Frame(void)
         {
           if (local[i + 6U + N + k] != 0U)
           {
-            printf("IAP error: Reserved bytes not 0\r\n");
+            printf("IAP错误: 保留字节非零\r\n");
             skip_one = 1U;
             break;
           }
@@ -547,45 +547,45 @@ void Parse_IAP_Frame(void)
 
         if (crc_calc != crc_rx)
         {
-          printf("IAP error: CRC check failed (calc 0x%04X, rx 0x%04X)\r\n",
+          printf("IAP错误: CRC校验失败 (计算=0x%04X, 接收=0x%04X)\r\n",
                  crc_calc,
                  crc_rx);
         }
         else if (cmd_enter != 0U)
         {
-          printf("Host ENTER_IAP command OK.\r\n");
+          printf("上位机 ENTER_IAP 命令已确认。\r\n");
           g_iap_enter_requested = 1U;
         }
         else if (cmd_firmware != 0U)
         {
           if (s_flash_program_allowed == 0U)
           {
-            printf("IAP: firmware frame ignored (send ENTER_IAP 0x0002 first).\r\n");
+            printf("IAP: 固件帧已忽略 (请先发送 ENTER_IAP 0x0002)。\r\n");
           }
           else if (s_download_prepared == 0U)
           {
-            printf("IAP error: download slot not prepared.\r\n");
+            printf("IAP错误: 下载槽位未准备。\r\n");
           }
           else
           {
             FLASH_Status wst;
 
-            printf("Firmware packet received OK. Length=%u, CRC OK\r\n", (unsigned)N);
+            printf("固件包接收成功。长度=%u, CRC校验通过\r\n", (unsigned)N);
             wst = IAP_FlashWriteBytes(local + i + 6U, N);
             if (wst != FLASH_COMPLETE)
             {
-              printf("IAP error: Flash program failed st=%d\r\n", (int)wst);
+              printf("IAP错误: Flash编程失败 状态=%d\r\n", (int)wst);
               return;
             }
 
-            printf("IAP flash progress: addr=0x%08lX, written=%lu bytes\r\n",
+            printf("IAP烧写进度: 地址=0x%08lX, 已写入=%lu字节\r\n",
                    (unsigned long)flash_write_addr,
                    (unsigned long)(flash_write_addr - s_download_slot_start));
           }
         }
         else
         {
-          printf("IAP error: internal cmd routing\r\n");
+          printf("IAP错误: 内部命令路由异常\r\n");
         }
 
         i = (uint16_t)((uint32_t)i + frame_total);
@@ -595,7 +595,7 @@ void Parse_IAP_Frame(void)
 
   if (saw_header == 0U && n > 0U)
   {
-    printf("IAP error: header sync not found (0x5A 0xA5)\r\n");
+    printf("IAP错误: 未找到帧同步头 (0x5A 0xA5)\r\n");
   }
 
   memset(local, 0, sizeof(local));

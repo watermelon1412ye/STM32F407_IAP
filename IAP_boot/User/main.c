@@ -36,10 +36,10 @@ static void IAP_RunSerialIapLoop(void)
         (IAP_UART_FrameReady() == 0U))
     {
       finalize_done = 1U;
-      printf("\r\nIAP: receive done (idle>1.5s), finalize flag and reset...\r\n");
+      printf("\r\nIAP: 接收完毕(空闲>1.5秒)，写入标志并复位...\r\n");
       if (IAP_UART_FinalizeDownload() != FLASH_COMPLETE)
       {
-        printf("IAP fatal: finalize download failed.\r\n");
+        printf("IAP致命错误: 固件收尾失败。\r\n");
         FLASH_Lock();
         while (1) {}
       }
@@ -62,7 +62,7 @@ int main(void)
   IAP_UART_Init();
 
   printf("\r\n========================================\r\n");
-  printf("=   IAP Bootloader (5-zone FSM)         =\r\n");
+  printf("=   IAP 引导程序 (5分区状态机)         =\r\n");
   printf("========================================\r\n");
 
   IAP_UART_SetFlashProgramAllowed(0U);
@@ -71,7 +71,7 @@ int main(void)
   {
     uint8_t slice;
 
-    printf("Countdown %u s: send ENTER_IAP(0x0002) or wait for A/B boot...\r\n",
+    printf("倒计时 %u 秒: 发送 ENTER_IAP(0x0002) 或等待 A/B 启动...\r\n",
            (unsigned)wait_left);
     LED_YELLOW;
 
@@ -90,21 +90,21 @@ int main(void)
     wait_left--;
   }
 
-  printf("\r\nTimeout: load from flag / slot A/B -> run, then jump.\r\n");
+  printf("\r\n超时: 从标志区/槽位A/B 加载到运行区，然后跳转。\r\n");
   IAP_Boot_NormalFromFlag();
 
 enter_permanent_iap:
-  printf("\r\nEnter permanent UART IAP (write inactive slot, then reset).\r\n");
+  printf("\r\n进入永久串口 IAP 模式 (写入非活跃槽位，然后复位)。\r\n");
   IAP_UART_ResetSession();
 
   FLASH_Unlock();
   if (IAP_UART_PrepareDownloadSlot() != FLASH_COMPLETE)
   {
-    printf("IAP fatal: prepare inactive slot failed.\r\n");
+    printf("IAP致命错误: 准备非活跃槽位失败。\r\n");
     FLASH_Lock();
     while (1) {}
   }
-  printf("IAP: inactive slot erased. Waiting for firmware (cmd 0x0001)...\r\n");
+  printf("IAP: 非活跃槽位已擦除，等待固件 (命令 0x0001)...\r\n");
 
   IAP_UART_SetFlashProgramAllowed(1U);
   IAP_RunSerialIapLoop();

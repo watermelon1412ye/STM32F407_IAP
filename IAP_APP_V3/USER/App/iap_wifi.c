@@ -198,13 +198,13 @@ static bool ESP8266_AT_Test(void)
   uint8_t cnt = 0U;
 
   GPIO_SetBits(WIFI_RST_PORT, WIFI_RST_PIN);
-  printf("WiFi: AT test...\r\n");
+  printf("WiFi: AT测试中...\r\n");
   vTaskDelay(pdMS_TO_TICKS(2000));
 
   while (cnt < 10U) {
-    printf("WiFi: AT attempt %u\r\n", (unsigned)cnt);
+    printf("WiFi: AT尝试次数 %u\r\n", (unsigned)cnt);
     if (ESP8266_Cmd("AT", "OK", NULL, 500)) {
-      printf("WiFi: AT OK\r\n");
+      printf("WiFi: AT测试通过\r\n");
       return true;
     }
     wifi_hw_reset();
@@ -276,57 +276,57 @@ static uint8_t ESP8266_Get_LinkStatus(void)
  * ================================================================ */
 static int wifi_config_sequence(void)
 {
-  printf("WiFi: resetting ESP8266...\r\n");
+  printf("WiFi: 复位ESP8266...\r\n");
   wifi_hw_reset();
 
   GPIO_SetBits(WIFI_EN_PORT, WIFI_EN_PIN);
 
   if (!ESP8266_AT_Test()) {
-    printf("WiFi error: AT test failed\r\n");
+    printf("WiFi错误: AT测试失败\r\n");
     return -1;
   }
 
   if (!ESP8266_DHCP_CUR()) {
-    printf("WiFi error: DHCP config failed\r\n");
+    printf("WiFi错误: DHCP配置失败\r\n");
     return -1;
   }
 
-  printf("WiFi: setting STA mode...\r\n");
+  printf("WiFi: 设置STA模式...\r\n");
   if (!ESP8266_Net_Mode_Choose(1U /* STA */)) {
-    printf("WiFi error: STA mode failed\r\n");
+    printf("WiFi错误: STA模式设置失败\r\n");
     return -1;
   }
 
   printf("WiFi: connecting AP \"%s\"...\r\n", WIFI_SSID);
   if (!ESP8266_JoinAP(WIFI_SSID, WIFI_PASSWORD)) {
-    printf("WiFi error: join AP failed\r\n");
+    printf("WiFi错误: 连接AP失败\r\n");
     return -1;
   }
-  printf("WiFi: AP connected\r\n");
+  printf("WiFi: AP已连接\r\n");
 
-  printf("WiFi: disable multi-connection...\r\n");
+  printf("WiFi: 禁用多连接...\r\n");
   if (!ESP8266_Enable_MultipleId(0U /* DISABLE */)) {
-    printf("WiFi error: set single connection failed\r\n");
+    printf("WiFi错误: 设置单连接失败\r\n");
     return -1;
   }
 
   {
     char port_str[8];
     snprintf(port_str, sizeof(port_str), "%d", WIFI_OTA_SERVER_PORT);
-    printf("WiFi: connecting TCP %s:%s ...\r\n", WIFI_OTA_SERVER_IP, port_str);
+    printf("WiFi: 正在连接TCP %s:%s ...\r\n", WIFI_OTA_SERVER_IP, port_str);
     if (!ESP8266_Link_Server(WIFI_OTA_SERVER_IP, port_str)) {
-      printf("WiFi error: TCP connect failed\r\n");
+      printf("WiFi错误: TCP连接失败\r\n");
       return -1;
     }
   }
-  printf("WiFi: TCP connected\r\n");
+  printf("WiFi: TCP已连接\r\n");
 
-  printf("WiFi: entering transparent mode...\r\n");
+  printf("WiFi: 进入透传模式...\r\n");
   if (!ESP8266_UnvarnishSend()) {
-    printf("WiFi error: enter transparent mode failed\r\n");
+    printf("WiFi错误: 进入透传模式失败\r\n");
     return -1;
   }
-  printf("WiFi: transparent mode ready\r\n");
+  printf("WiFi: 透传模式就绪\r\n");
 
   return 0;
 }
@@ -504,7 +504,7 @@ static int wifi_ota_begin(WifiOtaSession_t *s)
   s->write_addr  = s->slot_start;
   s->last_rx_ms  = wifi_ota_now_ms();
 
-  printf("WiFi OTA: prepare slot %c at 0x%08lX\r\n",
+  printf("WiFi OTA: 准备槽位 %c @0x%08lX\r\n",
          (s->target_boot_from == 0U) ? 'A' : 'B',
          (unsigned long)s->slot_start);
 
@@ -513,7 +513,7 @@ static int wifi_ota_begin(WifiOtaSession_t *s)
   FLASH_Lock();
 
   if (st != FLASH_COMPLETE) {
-    printf("WiFi OTA error: erase slot failed st=%d\r\n", (int)st);
+    printf("WiFi OTA错误: 擦除槽位失败 状态=%d\r\n", (int)st);
     wifi_ota_session_reset(s);
     return -1;
   }
@@ -531,7 +531,7 @@ static int wifi_ota_write_chunk(WifiOtaSession_t *s, const uint8_t *data, uint16
   }
 
   if ((s->bytes_written + (uint32_t)len) > IAP_RUN_SIZE) {
-    printf("WiFi OTA error: image too large (%lu)\r\n",
+    printf("WiFi OTA错误: 固件过大 (%lu)\r\n",
            (unsigned long)(s->bytes_written + (uint32_t)len));
     return -1;
   }
@@ -541,7 +541,7 @@ static int wifi_ota_write_chunk(WifiOtaSession_t *s, const uint8_t *data, uint16
   FLASH_Lock();
 
   if (st != FLASH_COMPLETE) {
-    printf("WiFi OTA error: flash write at 0x%08lX st=%d\r\n",
+    printf("WiFi OTA错误: Flash写入失败 地址=0x%08lX 状态=%d\r\n",
            (unsigned long)s->write_addr, (int)st);
     return -1;
   }
@@ -550,7 +550,7 @@ static int wifi_ota_write_chunk(WifiOtaSession_t *s, const uint8_t *data, uint16
   s->bytes_written += len;
   s->last_rx_ms     = wifi_ota_now_ms();
 
-  printf("WiFi OTA: slot %c progress %lu bytes\r\n",
+  printf("WiFi OTA: 槽位%c 进度 %lu 字节\r\n",
          (s->target_boot_from == 0U) ? 'A' : 'B',
          (unsigned long)s->bytes_written);
   return 0;
@@ -562,7 +562,7 @@ static void wifi_ota_commit_and_reboot(WifiOtaSession_t *s)
 
   if (s->active == 0U || s->bytes_written == 0U) return;
 
-  printf("WiFi OTA: finalize slot %c, size=%lu\r\n",
+  printf("WiFi OTA: 槽位%c 收尾, 大小=%lu\r\n",
          (s->target_boot_from == 0U) ? 'A' : 'B',
          (unsigned long)s->bytes_written);
 
@@ -571,12 +571,12 @@ static void wifi_ota_commit_and_reboot(WifiOtaSession_t *s)
   FLASH_Lock();
 
   if (st != FLASH_COMPLETE) {
-    printf("WiFi OTA error: write flag failed st=%d\r\n", (int)st);
+    printf("WiFi OTA错误: 写标志失败 状态=%d\r\n", (int)st);
     wifi_ota_session_reset(s);
     return;
   }
 
-  printf("WiFi OTA: flag updated, rebooting...\r\n");
+  printf("WiFi OTA: 标志已更新, 复位中...\r\n");
   vTaskDelay(pdMS_TO_TICKS(100));
   NVIC_SystemReset();
 }
@@ -661,7 +661,7 @@ static void wifi_ota_parse_frame_data(WifiOtaSession_t *s,
     }
 
     if (cmd_h == WIFI_OTA_CMD_IAP_H && cmd_l == WIFI_OTA_CMD_IAP_L) {
-      printf("WiFi OTA: ENTER_IAP received\r\n");
+      printf("WiFi OTA: 收到 ENTER_IAP 命令\r\n");
       if (wifi_ota_begin(s) != 0) wifi_ota_session_reset(s);
     } else if (cmd_h == WIFI_OTA_CMD_FW_H && cmd_l == WIFI_OTA_CMD_FW_L) {
       if (wifi_ota_write_chunk(s, &stream_buf[6], payload_len) != 0) {
@@ -690,24 +690,24 @@ static int wifi_reconnect_tcp(void)
   if (status == 4U /* disconnected */) {
     char port_str[8];
 
-    printf("WiFi: reconnecting...\r\n");
+    printf("WiFi: 重连中...\r\n");
 
     if (!ESP8266_JoinAP(WIFI_SSID, WIFI_PASSWORD)) {
-      printf("WiFi error: rejoin AP failed\r\n");
+      printf("WiFi错误: 重新加入AP失败\r\n");
       return -1;
     }
 
     snprintf(port_str, sizeof(port_str), "%d", WIFI_OTA_SERVER_PORT);
     if (!ESP8266_Link_Server(WIFI_OTA_SERVER_IP, port_str)) {
-      printf("WiFi error: reconnect TCP failed\r\n");
+      printf("WiFi错误: TCP重连失败\r\n");
       return -1;
     }
 
-    printf("WiFi: reconnected\r\n");
+    printf("WiFi: 已重新连接\r\n");
   }
 
   if (!ESP8266_UnvarnishSend()) {
-    printf("WiFi error: re-enter transparent mode failed\r\n");
+    printf("WiFi错误: 重新进入透传模式失败\r\n");
     return -1;
   }
 
@@ -733,11 +733,11 @@ void IAP_WIFI_Task(void *parameter)
   wifi_ota_session_reset(&session);
   conn_retry_ms = 0U;
 
-  printf("WiFi OTA: task started\r\n");
+  printf("WiFi OTA: 任务已启动\r\n");
 
   for (;;) {
     if (conn_retry_ms > 0U) {
-      printf("WiFi: retry in %lu ms...\r\n", (unsigned long)conn_retry_ms);
+      printf("WiFi: %lu 毫秒后重试...\r\n", (unsigned long)conn_retry_ms);
       vTaskDelay(pdMS_TO_TICKS(conn_retry_ms));
     }
 
@@ -750,12 +750,12 @@ void IAP_WIFI_Task(void *parameter)
     wifi_ota_session_reset(&session);
     wifi_rx_reset();
 
-    printf("WiFi OTA: waiting for firmware data...\r\n");
+    printf("WiFi OTA: 等待固件数据...\r\n");
 
     for (;;) {
       /* 检查 TCP 断开 */
       if (wifi_tcp_closed_flag != 0U) {
-        printf("WiFi: TCP closed by remote\r\n");
+        printf("WiFi: TCP被远程关闭\r\n");
         wifi_rx_reset();
         wifi_ota_session_reset(&session);
         if (wifi_reconnect_tcp() != 0) {
@@ -792,7 +792,7 @@ void IAP_WIFI_Task(void *parameter)
       if (session.active != 0U && session.bytes_written > 0U) {
         uint32_t idle_ms = wifi_ota_now_ms() - session.last_rx_ms;
         if (idle_ms >= WIFI_OTA_IDLE_TIMEOUT_MS) {
-          printf("WiFi OTA: idle %lu ms, finalizing...\r\n", (unsigned long)idle_ms);
+          printf("WiFi OTA: 空闲 %lu 毫秒, 收尾中...\r\n", (unsigned long)idle_ms);
           wifi_ota_commit_and_reboot(&session);
           break;
         }
@@ -810,5 +810,5 @@ void IAP_WIFI_Init(void)
 {
   wifi_hw_gpio_init();
   wifi_uart_init();
-  printf("WiFi: UART3 + ESP8266 initialized (IDLE interrupt mode)\r\n");
+  printf("WiFi: UART3 + ESP8266 已初始化 (IDLE中断模式)\r\n");
 }

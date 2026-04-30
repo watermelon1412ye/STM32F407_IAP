@@ -236,7 +236,7 @@ static int ota_begin_session(OtaSession_t *session)
   session->write_addr = session->slot_start;
   session->last_rx_ms = ota_now_ms();
 
-  printf("OTA: prepare slot %c at 0x%08lX\r\n",
+  printf("OTA: 准备槽位 %c @0x%08lX\r\n",
          (session->target_boot_from == 0U) ? 'A' : 'B',
          (unsigned long)session->slot_start);
 
@@ -245,7 +245,7 @@ static int ota_begin_session(OtaSession_t *session)
   FLASH_Lock();
 
   if (st != FLASH_COMPLETE) {
-    printf("OTA error: erase slot failed, st=%d\r\n", (int)st);
+    printf("OTA错误: 擦除槽位失败, 状态=%d\r\n", (int)st);
     ota_session_reset(session);
     return -1;
   }
@@ -265,7 +265,7 @@ static int ota_write_chunk(OtaSession_t *session, const uint8_t *data, uint16_t 
   }
 
   if ((session->bytes_written + (uint32_t)len) > IAP_RUN_SIZE) {
-    printf("OTA error: image too large (%lu bytes)\r\n",
+    printf("OTA错误: 固件过大 (%lu字节)\r\n",
            (unsigned long)(session->bytes_written + (uint32_t)len));
     return -1;
   }
@@ -275,7 +275,7 @@ static int ota_write_chunk(OtaSession_t *session, const uint8_t *data, uint16_t 
   FLASH_Lock();
 
   if (st != FLASH_COMPLETE) {
-    printf("OTA error: flash write failed at 0x%08lX, st=%d\r\n",
+    printf("OTA错误: Flash写入失败 地址=0x%08lX, 状态=%d\r\n",
            (unsigned long)session->write_addr,
            (int)st);
     return -1;
@@ -285,7 +285,7 @@ static int ota_write_chunk(OtaSession_t *session, const uint8_t *data, uint16_t 
   session->bytes_written += len;
   session->last_rx_ms = ota_now_ms();
 
-  printf("OTA: slot %c progress %lu bytes\r\n",
+  printf("OTA: 槽位%c 进度 %lu 字节\r\n",
          (session->target_boot_from == 0U) ? 'A' : 'B',
          (unsigned long)session->bytes_written);
 
@@ -300,7 +300,7 @@ static void ota_commit_and_reboot(OtaSession_t *session)
     return;
   }
 
-  printf("OTA: finalize slot %c, image_size=%lu\r\n",
+  printf("OTA: 槽位%c 收尾, 固件大小=%lu\r\n",
          (session->target_boot_from == 0U) ? 'A' : 'B',
          (unsigned long)session->bytes_written);
 
@@ -309,12 +309,12 @@ static void ota_commit_and_reboot(OtaSession_t *session)
   FLASH_Lock();
 
   if (st != FLASH_COMPLETE) {
-    printf("OTA error: write flag failed, st=%d\r\n", (int)st);
+    printf("OTA错误: 写标志失败, 状态=%d\r\n", (int)st);
     ota_session_reset(session);
     return;
   }
 
-  printf("OTA: flag updated, reboot to bootloader copy flow.\r\n");
+  printf("OTA: 标志已更新，复位交由Bootloader拷贝。\r\n");
   vTaskDelay(pdMS_TO_TICKS(100));
   NVIC_SystemReset();
 }
@@ -326,7 +326,7 @@ static int ota_process_frame(OtaSession_t *session,
                              uint16_t payload_len)
 {
   if ((cmd_h == OTA_CMD_ENTER_IAP_H) && (cmd_l == OTA_CMD_ENTER_IAP_L)) {
-    printf("OTA: ENTER_IAP received over TCP.\r\n");
+    printf("OTA: 通过TCP收到 ENTER_IAP 命令。\r\n");
     return ota_begin_session(session);
   }
 
@@ -334,7 +334,7 @@ static int ota_process_frame(OtaSession_t *session,
     return ota_write_chunk(session, payload, payload_len);
   }
 
-  printf("OTA error: unknown cmd 0x%02X 0x%02X\r\n",
+  printf("OTA错误: 未知命令 0x%02X 0x%02X\r\n",
          (unsigned)cmd_h,
          (unsigned)cmd_l);
   return -1;
@@ -371,7 +371,7 @@ static void ota_parse_stream(OtaSession_t *session, uint8_t *buffer, uint16_t *b
 
     payload_len = (uint16_t)(((uint16_t)buffer[4] << 8) | buffer[5]);
     if (payload_len > OTA_FRAME_MAX_N) {
-      printf("OTA error: invalid payload length %u\r\n", (unsigned)payload_len);
+      printf("OTA错误: 无效的负载长度 %u\r\n", (unsigned)payload_len);
       ota_consume_bytes(buffer, buffer_len, 2U);
       continue;
     }
@@ -387,7 +387,7 @@ static void ota_parse_stream(OtaSession_t *session, uint8_t *buffer, uint16_t *b
              (uint16_t)((uint16_t)buffer[crc_offset + 1U] << 8);
 
     if (crc_calc != crc_rx) {
-      printf("OTA error: CRC mismatch calc=0x%04X rx=0x%04X\r\n", crc_calc, crc_rx);
+      printf("OTA错误: CRC校验不匹配 计算=0x%04X 接收=0x%04X\r\n", crc_calc, crc_rx);
       ota_consume_bytes(buffer, buffer_len, 2U);
       continue;
     }
@@ -416,7 +416,7 @@ void OTA_UpdateTask(void *parameter)
   for (;;) {
     listen_fd = lwip_socket(AF_INET, SOCK_STREAM, 0);
     if (listen_fd < 0) {
-      printf("OTA error: socket create failed\r\n");
+      printf("OTA错误: socket创建失败\r\n");
       vTaskDelay(pdMS_TO_TICKS(1000));
       continue;
     }
@@ -427,20 +427,20 @@ void OTA_UpdateTask(void *parameter)
     local_addr.sin_addr.s_addr = PP_HTONL(INADDR_ANY);
 
     if (lwip_bind(listen_fd, (struct sockaddr *)&local_addr, sizeof(local_addr)) != 0) {
-      printf("OTA error: bind failed\r\n");
+      printf("OTA错误: bind失败\r\n");
       lwip_close(listen_fd);
       vTaskDelay(pdMS_TO_TICKS(1000));
       continue;
     }
 
     if (lwip_listen(listen_fd, 1) != 0) {
-      printf("OTA error: listen failed\r\n");
+      printf("OTA错误: listen失败\r\n");
       lwip_close(listen_fd);
       vTaskDelay(pdMS_TO_TICKS(1000));
       continue;
     }
 
-    printf("OTA: TCP server listening on port %d\r\n", OTA_SERVER_PORT);
+    printf("OTA: TCP服务器已启动，监听端口 %d\r\n", OTA_SERVER_PORT);
 
     for (;;) {
       int conn_fd;
@@ -456,7 +456,7 @@ void OTA_UpdateTask(void *parameter)
         break;
       }
 
-      printf("OTA: client connected %s:%u\r\n",
+      printf("OTA: 客户端已连接 %s:%u\r\n",
              inet_ntoa(client_addr.sin_addr),
              (unsigned)ntohs(client_addr.sin_port));
 
@@ -483,7 +483,7 @@ void OTA_UpdateTask(void *parameter)
         }
 
         if (recv_len == 0) {
-          printf("OTA: client disconnected\r\n");
+          printf("OTA: 客户端已断开\r\n");
           break;
         }
 

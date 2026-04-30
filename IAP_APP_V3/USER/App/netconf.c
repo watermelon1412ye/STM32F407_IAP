@@ -39,7 +39,7 @@ void LwIP_Init(void)
 #endif
 
   if (sys_sem_new(&init_sem, 0) != ERR_OK) {
-    printf("tcpip init sem create failed\r\n");
+    printf("tcpip初始化信号量创建失败\r\n");
     return;
   }
 
@@ -48,7 +48,7 @@ void LwIP_Init(void)
   sys_sem_free(&init_sem);
 
   if (netif_add(&gnetif, &ipaddr, &netmask, &gw, NULL, ethernetif_init, tcpip_input) == NULL) {
-    printf("netif_add failed\r\n");
+    printf("netif_add失败\r\n");
     return;
   }
 
@@ -59,12 +59,12 @@ void LwIP_Init(void)
     netif_set_link_up(&gnetif);
     netif_set_up(&gnetif);
     printf("IP: %d.%d.%d.%d\r\n", IP_ADDR0, IP_ADDR1, IP_ADDR2, IP_ADDR3);
-    printf("MASK: %d.%d.%d.%d\r\n", NETMASK_ADDR0, NETMASK_ADDR1, NETMASK_ADDR2, NETMASK_ADDR3);
-    printf("GW: %d.%d.%d.%d\r\n", GW_ADDR0, GW_ADDR1, GW_ADDR2, GW_ADDR3);
+    printf("子网掩码: %d.%d.%d.%d\r\n", NETMASK_ADDR0, NETMASK_ADDR1, NETMASK_ADDR2, NETMASK_ADDR3);
+    printf("网关: %d.%d.%d.%d\r\n", GW_ADDR0, GW_ADDR1, GW_ADDR2, GW_ADDR3);
   } else {
     netif_set_link_down(&gnetif);
     netif_set_down(&gnetif);
-    printf("ethernet link down\r\n");
+    printf("以太网链路断开\r\n");
   }
 }
 
