@@ -783,6 +783,11 @@
               <FilePath>..\..\USER\App\ota_update.c</FilePath>
             </File>
             <File>
+              <FileName>iap_wifi.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\USER\App\iap_wifi.c</FilePath>
+            </File>
+            <File>
               <FileName>FreeRTOSConfig.h</FileName>
               <FileType>5</FileType>
               <FilePath>..\..\USER\FreeRTOSConfig.h</FilePath>
